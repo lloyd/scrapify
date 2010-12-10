@@ -1,6 +1,8 @@
 import zipfile
 import json
 import base64
+import urlparse
+import logging
 
 class CRXConverter(object):
   """Extracts the manifest from a Chrome Store .crx-style web app,
@@ -15,8 +17,45 @@ class CRXConverter(object):
     
     manifestFile = zip.open("manifest.json", "r")
     manifest = json.loads(manifestFile.read())
+
+    self.convertURLs(manifest)
     self.convertIcons(zip, manifest)
     return manifest
+    
+  def convertURLs(self, manifest):
+    # CRX uses app: {urls: [url], launch: { web_url: urh } }
+    # OWA uses base_url: url
+    
+    # Find the common subset of urls and launch/web_url
+    # OWA does not currently support apps which span domains.
+    
+    if "app" in manifest:
+      app = manifest["app"]
+      if "launch" in app:
+        launch = app["launch"]
+        if "web_url" in launch:
+          web_url = launch["web_url"]
+          parsed_url = urlparse.urlparse(web_url)
+          path = parsed_url.path
+          idx = path.rfind('/')
+          if idx >= 0:
+            fname = path[idx:]
+            dir = path[:idx]
+          base_url = parsed_url.scheme + "://" + parsed_url.netloc + dir
+          
+          logging.warn(web_url)
+          manifest["base_url"] = base_url
+          manifest["launch_path"] = fname
+          del manifest["app"]
+        else:
+          raise Exception("Cannot convert; no web_url in app/launch")
+      else:
+        raise Exception("Cannot convert; no launch in app")
+    else:
+      raise Exception("Cannot convert; no app in manifest")
+
+    if "update_url" in manifest:
+      del manifest["update_url"]
     
     
   def convertIcons(self, zip, manifest):
@@ -39,4 +78,3 @@ conv = CRXConverter()
 manifest = conv.convert(open("test.crx", "r"))
 
 print manifest
-  
