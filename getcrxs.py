@@ -25,9 +25,7 @@ class ChromeCrawler(object):
     return not self.pageQueue.empty()
   
   def processRoot(self, url):
-    u = urllib.urlopen(url)
-    html = u.read()
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(urllib.urlopen(url).read())
     for x in soup.findAll('a', attrs={'class': 'category'}):
       loc = urlparse(x['href'])
       if string.find(loc.query, '=app') != -1:
@@ -35,6 +33,7 @@ class ChromeCrawler(object):
         self.pageQueue.put(("directory", url))
 
   def processDirectory(self, url):
+    
     print("processing directory: " + url)
     pass
 
