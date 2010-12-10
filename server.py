@@ -15,8 +15,8 @@ from crxconverter import CRXConverter
 SAVE_CRX_DUMPS = True
 CRX_DOWNLOAD_BASE = "https://clients2.google.com/service/update2/crx?response=redirect&x=id%%3D%s%%26lang%%3Den-US%%26uc"
 
-MANIFEST_STORAGE_DIR = "manifests"
-CRX_DUMP_DIR = "crx_dump"
+MANIFEST_STORAGE_DIR = ".server_manifests"
+CRX_DUMP_DIR = ".server_crx_dump"
 
 class InstallCRXHandler(tornado.web.RequestHandler):
   def get(self):
@@ -47,7 +47,7 @@ class InstallCRXHandler(tornado.web.RequestHandler):
     self.render("install.html", manifest=manifest, return_to=url)
 
   def manifest_storage_path(self, theID):
-    return "%s/%s" % (MANIFEST_STORAGE_DIR, theID)
+    return "%s/%s/%s" % (os.env["HOME"], MANIFEST_STORAGE_DIR, theID)
 
   def manifest_exists(self, theID):
     return os.path.exists(self.manifest_storage_path(theID))
@@ -59,7 +59,7 @@ class InstallCRXHandler(tornado.web.RequestHandler):
     downloadConn = urllib.urlopen(downloadURL)
     downloadBytes = downloadConn.read()
     if SAVE_CRX_DUMPS:
-      dumpFile = open("%s/%s.crx" % (CRX_DUMP_DIR, theID), "w")
+      dumpFile = open("%s/%s/%s.crx" % (os.env["HOME"], CRX_DUMP_DIR, theID), "w")
       dumpFile.write(downloadBytes)
       dumpFile.close()
     
@@ -80,13 +80,13 @@ application = tornado.web.Application([
 
 def run():
   try:
-    os.mkdir(MANIFEST_STORAGE_DIR)
+    os.mkdir("%s/%s" % (os.env["HOME"], MANIFEST_STORAGE_DIR))
   except:
     pass
 
   if SAVE_CRX_DUMPS:
     try:
-      os.mkdir(CRX_DUMP_DIR)
+      os.mkdir("%s/%s" % (os.env["HOME"], CRX_DUMP_DIR))
     except:
       pass
       

@@ -1,14 +1,14 @@
 <html>
 <head>
 <title>Mozilla Labs: Open Web Apps installer</title>
-<script src="https://myapps.mozillalabs.com/js/jquery-1.4.2.min.js"></script> 
-<script src="https://myapps.mozillalabs.com/js/jschannel.js"></script> 
-<script src="https://myapps.mozillalabs.com/jsapi/include.js"></script>
+<script src="https://stage.myapps.mozillalabs.com/js/jquery-1.4.2.min.js"></script> 
+<script src="https://stage.myapps.mozillalabs.com/jsapi/include.js"></script>
+
 <script>
 var gManifest = {{ manifest }}
 $(document).ready(function() {
-  navigator.apps.install({manifest: gManifest, callback: function() {
-    window.location = "https://myapps.mozillalabs.com"
+  navigator.apps.install({manifest: gManifest, callback: function(val) {
+    window.location = "https://stage.myapps.mozillalabs.com"
   }});
 });
 </script>
