@@ -20,14 +20,16 @@ class CRXConverter(object):
 
     self.convertURLs(manifest)
     self.convertIcons(zip, manifest)
+    self.convertPermissions(manifest)
     return manifest
     
   def convertURLs(self, manifest):
     # CRX uses app: {urls: [url], launch: { web_url: urh } }
-    # OWA uses base_url: url
+    # OWA uses base_url: url and launch_path
     
-    # Find the common subset of urls and launch/web_url
-    # OWA does not currently support apps which span domains.
+    # Since we are not scoping these apps (they will be "bookmark apps"
+    # in OWA lingo), we ignore the urls parameter and just extract
+    # launch.
     
     if "app" in manifest:
       app = manifest["app"]
@@ -57,7 +59,11 @@ class CRXConverter(object):
     if "update_url" in manifest:
       del manifest["update_url"]
     
-    
+  def convertPermissions(self, manifest):
+    if "permissions" in manifest:
+      manifest["capabilities"] = manifest["permissions"]
+      del manifest["permissions"]
+      
   def convertIcons(self, zip, manifest):
     if "icons" in manifest:
       for key, value in manifest["icons"].iteritems():
