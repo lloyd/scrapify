@@ -11,6 +11,7 @@ from Queue import Queue
 from crxconverter import CRXConverter
 import json
 
+SAVE_CRX_DUMPS = True
 CRX_DOWNLOAD_BASE = "https://clients2.google.com/service/update2/crx?response=redirect&x=id%%3D%s%%26lang%%3Den-US%%26uc"
 
 class ChromeCrawler(object):
@@ -82,13 +83,20 @@ class ChromeCrawler(object):
       # Go get it!
       downloadConn = urllib.urlopen(downloadURL)
       downloadBytes = downloadConn.read()
-      if False:
+      if SAVE_CRX_DUMPS:
+        try:
+          os.mkdir("crx_dump")
+        except:
+          pass
         dumpFile = open("crx_dump/%s.crx" % theID, "w")
         dumpFile.write(downloadBytes)
         dumpFile.close()
       
       manifest = CRXConverter().convert(StringIO(downloadBytes))
-      os.mkdir("output")
+      try:
+        os.mkdir("output")
+      except:
+        pass
       outputFile = open("output/%s" % theID, "w")
       outputFile.write(json.dumps(manifest))
       outputFile.close()

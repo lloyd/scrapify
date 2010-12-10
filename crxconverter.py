@@ -48,7 +48,6 @@ class CRXConverter(object):
             dir = path[:idx+1]
           base_url = parsed_url.scheme + "://" + parsed_url.netloc + dir
           
-          logging.warn(web_url)
           manifest["base_url"] = base_url
           manifest["launch_path"] = fname
           del manifest["app"]
