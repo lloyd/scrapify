@@ -28,22 +28,27 @@ class ChromeCrawler(object):
     return not self.pageQueue.empty()
   
   def processRoot(self, url):
-    u = urllib.urlopen(url)
-    html = u.read()
-    soup = BeautifulSoup(html)
-    l = [ ]
+    soup = BeautifulSoup(urllib.urlopen(url).read())
     for x in soup.findAll('a', attrs={'class': 'category'}):
-        loc = urlparse(x['href'])
-        if string.find(loc['query'], '=app'):
-            l.append('https://chrome.google.com/webstore/list/most_popular?' + loc['query'])
+      loc = urlparse(x['href'])
+      if string.find(loc.query, '=app') != -1:
+        url = 'https://chrome.google.com/webstore/list/most_popular?' + loc.query
+        self.pageQueue.put(("directory", url))
 
-    # put 'em in the queue
-    return l
-  
   def processDirectory(self, url):
-    pass
+    print("processing directory: " + url)
+    soup = BeautifulSoup(urllib.urlopen(url).read())
+
+    # parse out all app urls
+    for x in soup.findAll('a', attrs={'class': 'title-a'}):
+      url = 'https://chrome.google.com' + x['href']
+      self.pageQueue.put(("app", url))
+
+    # now next page in pagination if required
+    # XXX
 
   def processApp(self, url):
+    print("processing app: " + url)
     u = urllib.urlopen(url)
     html = u.read()
     u.close()
