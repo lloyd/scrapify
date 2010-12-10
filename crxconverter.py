@@ -21,6 +21,8 @@ class CRXConverter(object):
     self.convertURLs(manifest)
     self.convertIcons(zip, manifest)
     self.convertPermissions(manifest)
+    self.removeCruft(manifest)
+    manifest["manifest_version"] = "0.2"
     return manifest
     
   def convertURLs(self, manifest):
@@ -72,15 +74,23 @@ class CRXConverter(object):
         elif value.startswith("http"):
           pass
         else:
-          iconFile = zip.open(value, "r")
-          iconFile64 = base64.b64encode(iconFile.read())
-          
-          flavor = value[value.rfind('.')+1:]
-          manifest["icons"][key] = "data:image/" + flavor + ";base64," + iconFile64
-    
+          try:
+            iconFile = zip.open(value, "r")
+            iconFile64 = base64.b64encode(iconFile.read())
+            
+            flavor = value[value.rfind('.')+1:]
+            manifest["icons"][key] = "data:image/" + flavor + ";base64," + iconFile64
+          except Exception, e:
+            logging.warn("Unable to embed icon %s" % value)
+  
+  def removeCruft(self, manifest):
+    if "key" in manifest:
+      del manifest["key"]
+    if "version" in manifest:
+      del manifest["version"]
 
-
+import sys
 conv = CRXConverter()
-manifest = conv.convert(open("test.crx", "r"))
+manifest = conv.convert(open(sys.argv[1], "r"))
 
 print manifest
