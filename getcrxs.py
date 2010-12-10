@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
+from urlparse import urlparse
 import urllib
+import string
 from BeautifulSoup import BeautifulSoup
 
 def getCats():
@@ -9,8 +11,12 @@ def getCats():
     soup = BeautifulSoup(html)
     l = [ ]
     for x in soup.findAll('a', attrs={'class': 'category'}):
-        l.append(x['href'])
+        loc = urlparse(x['href'])
+        if string.find(loc['query'], '=app'):
+            l.append('https://chrome.google.com/webstore/list/most_popular?' + loc['query'])
     return l
 
-print getCats()
+for i in getCats():
+    print i
+
 
