@@ -33,11 +33,19 @@ class ChromeCrawler(object):
         self.pageQueue.put(("directory", url))
 
   def processDirectory(self, url):
-    
     print("processing directory: " + url)
-    pass
+    soup = BeautifulSoup(urllib.urlopen(url).read())
+
+    # parse out all app urls
+    for x in soup.findAll('a', attrs={'class': 'title-a'}):
+      url = 'https://chrome.google.com' + x['href']
+      self.pageQueue.put(("app", url))
+
+    # now next page in pagination if required
+    # XXX
 
   def processApp(self, url):
+    print("processing app: " + url)
     u = urllib.urlopen(url)
     html = u.read()
     u.close()
