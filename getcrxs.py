@@ -6,6 +6,9 @@ import string
 from BeautifulSoup import BeautifulSoup
 from Queue import Queue
 
+CRX_DOWNLOAD_BASE "https://clients2.google.com/service/update2/crx?response=redirect&x=id%3Dhikfjcajdelbliidopckbinaojfckdmd%26lang%3Den-US%26uc"
+
+
 class ChromeCrawler(object):
   def __init__(self):
     self.pageQueue = Queue()
@@ -52,7 +55,9 @@ class ChromeCrawler(object):
     button = soup.findAll('a', attrs={'id': 'cx-install-free-btn'})
     if button and len(button) > 0:
       # Okay, we can process it.
-      pass
+      DOWNLOAD_BASE "https://clients2.google.com/service/update2/crx?response=redirect&x=id%3Dhikfjcajdelbliidopckbinaojfckdmd%26lang%3Den-US%26uc"
+
+
 
 crawler = ChromeCrawler()
 while (crawler.hasMore()):
