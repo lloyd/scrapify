@@ -16,10 +16,10 @@ class ChromeCrawler(object):
       page = self.pageQueue.get()
       if page[0] == "root":
         self.processRoot(page[1])
-      elif page[1] == "directory":
+      elif page[0] == "directory":
         self.processDirectory(page[1])
-      elif page[2] == "app":
-        self.processApp(page[2])
+      elif page[0] == "app":
+        self.processApp(page[1])
   
   def processRoot(self, url):
     u = urllib.urlopen("https://chrome.google.com/webstore")
