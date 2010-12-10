@@ -28,16 +28,14 @@ class ChromeCrawler(object):
     u = urllib.urlopen(url)
     html = u.read()
     soup = BeautifulSoup(html)
-    l = [ ]
     for x in soup.findAll('a', attrs={'class': 'category'}):
-        loc = urlparse(x['href'])
-        if string.find(loc['query'], '=app'):
-            l.append('https://chrome.google.com/webstore/list/most_popular?' + loc['query'])
+      loc = urlparse(x['href'])
+      if string.find(loc.query, '=app') != -1:
+        url = 'https://chrome.google.com/webstore/list/most_popular?' + loc.query
+        self.pageQueue.put(("directory", url))
 
-    # put 'em in the queue
-    return l
-  
   def processDirectory(self, url):
+    print("processing directory: " + url)
     pass
 
   def processApp(self, url):
