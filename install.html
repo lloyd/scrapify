@@ -1,1 +1,23 @@
-Doing an install.  Manifest is {{ manifest }}
+<html>
+<head>
+<title>Mozilla Labs: Open Web Apps installer</title>
+<script src="https://myapps.mozillalabs.com/js/jquery-1.4.2.min.js"></script> 
+<script src="https://myapps.mozillalabs.com/js/jschannel.js"></script> 
+<script src="https://myapps.mozillalabs.com/jsapi/include.js"></script>
+<script>
+var gManifest = {{ manifest }}
+$(document).ready(function() {
+  navigator.apps.install({manifest: gManifest, callback: function() {
+    window.location = "https://myapps.mozillalabs.com"
+  }});
+});
+</script>
+<body>
+
+<div id="banner">Mozilla Labs</div>
+<div id="body">
+<p>Installing application - please click "Install" to proceed.</p>
+<p><a href="{{ return_to }}">Return to origin page</a></p>
+</div>
+</body>
+</html>

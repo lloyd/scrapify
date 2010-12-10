@@ -44,7 +44,7 @@ class InstallCRXHandler(tornado.web.RequestHandler):
     dataFD = open(self.manifest_storage_path(theID), "r")
     manifest = dataFD.read()
     dataFD.close()
-    self.render("install.html", manifest=manifest)
+    self.render("install.html", manifest=manifest, return_to=url)
 
   def manifest_storage_path(self, theID):
     return "%s/%s" % (MANIFEST_STORAGE_DIR, theID)
