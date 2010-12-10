@@ -23,6 +23,7 @@ class CRXConverter(object):
     self.convertPermissions(manifest)
     self.removeCruft(manifest)
     manifest["manifest_version"] = "0.2"
+    manifest["default_locale"] = "en-US"
     return manifest
     
   def convertURLs(self, manifest):
@@ -43,8 +44,8 @@ class CRXConverter(object):
           path = parsed_url.path
           idx = path.rfind('/')
           if idx >= 0:
-            fname = path[idx:]
-            dir = path[:idx]
+            fname = path[idx+1:]
+            dir = path[:idx+1]
           base_url = parsed_url.scheme + "://" + parsed_url.netloc + dir
           
           logging.warn(web_url)
@@ -89,8 +90,9 @@ class CRXConverter(object):
     if "version" in manifest:
       del manifest["version"]
 
-import sys
-conv = CRXConverter()
-manifest = conv.convert(open(sys.argv[1], "r"))
 
-print manifest
+if __name__ == "__main__":
+  import sys
+  conv = CRXConverter()
+  manifest = conv.convert(open(sys.argv[1], "r"))
+  print manifest

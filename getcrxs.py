@@ -1,19 +1,23 @@
 #!/usr/bin/env python2
 
 from urlparse import urlparse
+import os
 import urllib
 import string
+from cStringIO import StringIO
 from BeautifulSoup import BeautifulSoup
 from Queue import Queue
+from crxconverter import CRXConverter
+import json
 
-CRX_DOWNLOAD_BASE "https://clients2.google.com/service/update2/crx?response=redirect&x=id%3Dhikfjcajdelbliidopckbinaojfckdmd%26lang%3Den-US%26uc"
-
+CRX_DOWNLOAD_BASE = "https://clients2.google.com/service/update2/crx?response=redirect&x=id%%3D%s%%26lang%%3Den-US%%26uc"
 
 class ChromeCrawler(object):
   def __init__(self):
     self.pageQueue = Queue()
-    self.pageQueue.put(("root", "https://chrome.google.com/webstore"))
-    
+    self.pageQueue.put(("app", "https://chrome.google.com/webstore/detail/cnocophcbjfiimmnhlhleaooedeheifb"))
+#    self.pageQueue.put(("root", "https://chrome.google.com/webstore"))
+
   def step(self):
     if not self.pageQueue.empty():
       page = self.pageQueue.get()
@@ -60,9 +64,28 @@ class ChromeCrawler(object):
     button = soup.findAll('a', attrs={'id': 'cx-install-free-btn'})
     if button and len(button) > 0:
       # Okay, we can process it.
-      DOWNLOAD_BASE "https://clients2.google.com/service/update2/crx?response=redirect&x=id%3Dhikfjcajdelbliidopckbinaojfckdmd%26lang%3Den-US%26uc"
+      
+      # Find the ID from the url
+      parsed = urlparse(url)
+      theID = parsed.path[parsed.path.rfind("/")+1:]
 
-
+      # Construct our download URL
+      downloadURL = CRX_DOWNLOAD_BASE % theID
+      
+      # Go get it!
+      downloadConn = urllib.urlopen(downloadURL)
+      downloadBytes = downloadConn.read()
+      if False:
+        dumpFile = open("crx_dump/%s.crx" % theID, "w")
+        dumpFile.write(downloadBytes)
+        dumpFile.close()
+      
+      manifest = CRXConverter().convert(StringIO(downloadBytes))
+      os.mkdir("output")
+      outputFile = open("output/%s" % theID, "w")
+      outputFile.write(json.dumps(manifest))
+      outputFile.close()
+      
 
 crawler = ChromeCrawler()
 while (crawler.hasMore()):
