@@ -91,9 +91,9 @@ def run():
       pass
       
   http_server = tornado.httpserver.HTTPServer(application)
-  http_server.listen(8400)
+  http_server.listen(8600)
   tornado.ioloop.IOLoop.instance().start()
-  
+
 if __name__ == '__main__':
   logging.basicConfig(level = logging.DEBUG)
   run()
