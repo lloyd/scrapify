@@ -6,7 +6,11 @@ import tornado.ioloop
 import tornado.web
 import logging
 import os
+import urllib
 import urlparse
+import json
+from cStringIO import StringIO
+from crxconverter import CRXConverter
 
 SAVE_CRX_DUMPS = True
 CRX_DOWNLOAD_BASE = "https://clients2.google.com/service/update2/crx?response=redirect&x=id%%3D%s%%26lang%%3Den-US%%26uc"
@@ -14,15 +18,22 @@ CRX_DOWNLOAD_BASE = "https://clients2.google.com/service/update2/crx?response=re
 MANIFEST_STORAGE_DIR = "manifests"
 CRX_DUMP_DIR = "crx_dump"
 
-class InstallCRXHandler(WebHandler):
+class InstallCRXHandler(tornado.web.RequestHandler):
   def get(self):
     url = self.get_argument("url", None)
     if not url:
       self.render("error.html", error="Missing required 'url' parameter")
       return
     
+    logging.debug("installcrx url is %s" % url)
     parsed = urlparse.urlparse(url)
-    theID = parsed.path[parsed.path.rfind("/")+1:]
+    path = parsed.path
+    hashCheck = path.rfind('#')
+    if hashCheck > 0:
+      path = path[:hashCheck]
+      logging.debug("removed hash %s" % path)
+    theID = path[path.rfind("/")+1:]
+    logging.debug("id is %s" % theID)
 
     if not self.manifest_exists(theID):
       self.fetch_crx(theID)
@@ -30,16 +41,16 @@ class InstallCRXHandler(WebHandler):
         self.render("error.html", error="Unable to retrieve application manifest.")
         return
     
-    dataFD = open(manifest_storage_path(theID), "r")
+    dataFD = open(self.manifest_storage_path(theID), "r")
     manifest = dataFD.read()
     dataFD.close()
-    self.render("install.html", manifest)
+    self.render("install.html", manifest=manifest)
 
   def manifest_storage_path(self, theID):
     return "%s/%s" % (MANIFEST_STORAGE_DIR, theID)
 
   def manifest_exists(self, theID):
-    return os.path.exists(manifest_storage_path(theID))
+    return os.path.exists(self.manifest_storage_path(theID))
 
   def fetch_crx(self, theID):
     downloadURL = CRX_DOWNLOAD_BASE % theID
@@ -53,12 +64,13 @@ class InstallCRXHandler(WebHandler):
       dumpFile.close()
     
     manifest = CRXConverter().convert(StringIO(downloadBytes))
-    outputFile = open(manifest_storage_path(theID), "w")
+    outputFile = open(self.manifest_storage_path(theID), "w")
     outputFile.write(json.dumps(manifest))
     outputFile.close()
 
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
+  "debug":True
 }
 
 application = tornado.web.Application([
