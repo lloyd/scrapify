@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
-from urlparse import urlparse
+import urlparse
+import re
 import urllib
 import string
 from BeautifulSoup import BeautifulSoup
@@ -27,9 +28,9 @@ class ChromeCrawler(object):
   def processRoot(self, url):
     soup = BeautifulSoup(urllib.urlopen(url).read())
     for x in soup.findAll('a', attrs={'class': 'category'}):
-      loc = urlparse(x['href'])
+      loc = urlparse.urlparse(x['href'])
       if string.find(loc.query, '=app') != -1:
-        url = 'https://chrome.google.com/webstore/list/most_popular?' + loc.query
+        url = 'https://chrome.google.com/webstore/list/most_popular/1?' + loc.query
         self.pageQueue.put(("directory", url))
 
   def processDirectory(self, url):
@@ -38,11 +39,17 @@ class ChromeCrawler(object):
 
     # parse out all app urls
     for x in soup.findAll('a', attrs={'class': 'title-a'}):
-      url = 'https://chrome.google.com' + x['href']
-      self.pageQueue.put(("app", url))
+      app_url = 'https://chrome.google.com' + x['href']
+      self.pageQueue.put(("app", app_url))
 
-    # now next page in pagination if required
-    # XXX
+    # now next page in pagination if required - if it's X of Y then there's another
+    # page!
+
+    paginationDeets = soup.find('div', text=re.compile("\d+ of \d+"))
+    if (paginationDeets):
+      nextPage = str(1 + int(re.search('/(\d+)\?', url).group(1)))
+      nxt = re.sub('/\d+\?', "/" + nextPage + "?", url)
+      self.pageQueue.put(("directory", nxt))
 
   def processApp(self, url):
     print("processing app: " + url)
