@@ -21,8 +21,11 @@ class ChromeCrawler(object):
       elif page[0] == "app":
         self.processApp(page[1])
   
+  def hasMore(self):
+    return not self.pageQueue.empty()
+  
   def processRoot(self, url):
-    u = urllib.urlopen("https://chrome.google.com/webstore")
+    u = urllib.urlopen(url)
     html = u.read()
     soup = BeautifulSoup(html)
     l = [ ]
@@ -38,10 +41,19 @@ class ChromeCrawler(object):
     pass
 
   def processApp(self, url):
-    pass
-    
+    u = urllib.urlopen(url)
+    html = u.read()
+    u.close()
 
-for i in getCats():
-    print i
+    soup = BeautifulSoup(html)
 
+    # The page must contain a button with an id of
+    # "cx-install-free-btn" for us to process it.
+    button = soup.findAll('a', attrs={'id': 'cx-install-free-btn'})
+    if button and len(button) > 0:
+      # Okay, we can process it.
+      pass
 
+crawler = ChromeCrawler()
+while (crawler.hasMore()):
+  crawler.step()
