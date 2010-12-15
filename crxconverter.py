@@ -1,3 +1,4 @@
+import codecs
 import zipfile
 import json
 import base64
@@ -16,7 +17,9 @@ class CRXConverter(object):
     zip = zipfile.ZipFile(inputFile, "r")
     
     manifestFile = zip.open("manifest.json", "r")
-    manifest = json.loads(manifestFile.read())
+    
+    # Hey, could be a BOM
+    manifest = json.loads(manifestFile.read().lstrip(u"\uFEFF"))
 
     self.convertURLs(manifest)
     self.convertIcons(zip, manifest)

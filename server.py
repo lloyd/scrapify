@@ -3,6 +3,7 @@
 import tornado.httpserver
 import tornado.auth
 import tornado.ioloop
+import tornado.httpclient
 import tornado.web
 import logging
 import os
@@ -68,13 +69,115 @@ class InstallCRXHandler(tornado.web.RequestHandler):
     outputFile.write(json.dumps(manifest))
     outputFile.close()
 
+
+
+
+class ConvertCRXHandler(tornado.web.RequestHandler):
+  def manifest_storage_path(self, theID):
+    return "%s/%s/%s" % (os.environ["HOME"], MANIFEST_STORAGE_DIR, theID)
+
+  def manifest_exists(self, theID):
+    return os.path.exists(self.manifest_storage_path(theID))
+
+
+  @tornado.web.asynchronous
+  def get(self):
+    url = self.get_argument("url", None)
+    if not url: 
+      logging.error("Missing required 'url' parameter")
+      raise tornado.web.HTTPError(400)
+    
+    # Extract the ID from CRX URL
+    logging.debug("convertcrx url is %s" % url)
+    parsed = urlparse.urlparse(url)
+    path = parsed.path
+    hashCheck = path.rfind('#')
+    if hashCheck > 0:
+      path = path[:hashCheck]
+    theID = path[path.rfind("/")+1:]
+    logging.debug("id is %s" % theID)
+
+    # See if we have a cached one
+    if not self.manifest_exists(theID):
+      # If not, go get it
+      self.fetch_crx(theID)
+    else:
+      dataFD = open(self.manifest_storage_path(theID), "r")
+      manifest = json.loads(dataFD.read())
+      dataFD.close()
+      self.on_manifest_available(manifest)
+
+  def fetch_crx(self, theID):
+    downloadURL = CRX_DOWNLOAD_BASE % theID
+
+    http = tornado.httpclient.AsyncHTTPClient()
+    crxRequest = tornado.httpclient.HTTPRequest(downloadURL)
+    crxRequest.crxid = theID
+    http.fetch(crxRequest, callback=self.on_fetch_response)
+    
+  def on_fetch_response(self, response):
+    if response.error:
+      logging.error("%s %s" % (response.error, response.body))
+      logging.error("Unable to retrive application manifest")
+      raise tornado.web.HTTPError(500)
+    else:
+      if SAVE_CRX_DUMPS:
+        dumpFile = open("%s/%s/%s.crx" % (os.environ["HOME"], CRX_DUMP_DIR, response.request.crxid), "w")
+        dumpFile.write(response.body)
+        dumpFile.close()
+      manifest = CRXConverter().convert(StringIO(response.body))
+      outputFile = open(self.manifest_storage_path(response.request.crxid), "w")
+      outputFile.write(json.dumps(manifest))
+      outputFile.close()
+      self.on_manifest_available(manifest)
+
+  def on_manifest_available(self, manifest):
+    self.write(json.dumps(manifest))
+    self.finish()
+
+
+class GetManifestHandler(tornado.web.RequestHandler):
+  @tornado.web.asynchronous
+  def get(self):
+    url = self.get_argument("url", None)
+    if not url:
+      self.write("""{"status":"error", "message":"Missing required 'url' parameter"}""")
+      self.finish()
+      return
+    
+    # TODO Check for cached copy (use normal web cache-control semantics)
+    # Also, we could apply a blacklist here if we have known bad actors.
+    http = tornado.httpclient.AsyncHTTPClient()
+    http.fetch(url, callback=self.on_response)
+
+  def on_response(self, response):
+    if response.error: 
+      self.write("""{"status":"error", "message":"Unable to contact remote server"}""")
+      self.finish()
+      return
+    
+    # Parse it and make sure it's valid
+    try:
+      logging.error(response.body)
+      manifest = json.loads(response.body)
+      # TODO Validate manifest schema?
+      # TODO Should we reserialize or pass through verbatim?  Verbatim allows hashing
+      # but might allow sneaky content encoding trickery.
+      self.write(json.dumps(manifest))
+    except Exception, e:
+      logging.exception(e)
+      self.write("""{"status":"error", "message":"Application manifest is malformed."}""")
+    self.finish()
+
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
   "debug":True
 }
 
 application = tornado.web.Application([
-    (r"/installcrx", InstallCRXHandler) 
+    (r"/installcrx", InstallCRXHandler),
+    (r"/convertcrx", ConvertCRXHandler),
+    (r"/getmanifest", GetManifestHandler) 
 	], **settings)
 
 
