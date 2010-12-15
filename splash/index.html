@@ -11,7 +11,7 @@
     <p>Using the Chrome web app installer bookmarklet you can install chrome web applications as open web apps!</p>
     <ol start="0">
       <li><p>Use a recent Firefox, Chrome or Safari</p></li>
-      <li><p style="margin-bottom: 125px; position: relative; top: 125px"><a href="javascript:(function(){var url='https://apphelper.mozillalabs.com/install.html?url=' + window.location; window.open(url, 'openwebappdashboard'); })()">Install As App</a></p><p style="position: relative; top: -150px; left: 100px; height: 0"><img src="DragToBar.png"></p>
+      <li><p style="margin-bottom: 125px; position: relative; top: 125px"><a href="javascript:(function(){var url='https://apphelper.mozillalabs.com/install.html?url=' + escape(window.location); window.open(url, 'openwebappdashboard'); })()">Install As App</a></p><p style="position: relative; top: -150px; left: 100px; height: 0"><img src="DragToBar.png"></p>
       </li>
       <li>
         <p style="z-index: 999">Browse the <a href="http://chrome.google.com/webstore">chrome web app store</a> and find an application you want to install.
