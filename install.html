@@ -3,15 +3,6 @@
 <title>Mozilla Labs: Open Web Apps installer</title>
 <script src="https://stage.myapps.mozillalabs.com/js/jquery-1.4.2.min.js"></script> 
 <script src="https://stage.myapps.mozillalabs.com/jsapi/include.js"></script>
-
-<script>
-var gManifest = {{ manifest }}
-$(document).ready(function() {
-  navigator.apps.install({manifest: gManifest, callback: function(val) {
-    window.location = "https://stage.myapps.mozillalabs.com"
-  }});
-});
-</script>
 <body>
 
 <div id="banner">Mozilla Labs</div>
@@ -20,4 +11,12 @@ $(document).ready(function() {
 <p><a href="{{ return_to }}">Return to origin page</a></p>
 </div>
 </body>
+<script>
+var gManifest = {{ manifest }}
+$(document).ready(function() {
+  navigator.apps.install({manifest: gManifest, callback: function(val) {
+    window.location = "https://stage.myapps.mozillalabs.com"
+  }});
+});
+</script>
 </html>
