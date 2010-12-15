@@ -135,40 +135,6 @@ class ConvertCRXHandler(tornado.web.RequestHandler):
     self.write(json.dumps(manifest))
     self.finish()
 
-
-class GetManifestHandler(tornado.web.RequestHandler):
-  @tornado.web.asynchronous
-  def get(self):
-    url = self.get_argument("url", None)
-    if not url:
-      self.write("""{"status":"error", "message":"Missing required 'url' parameter"}""")
-      self.finish()
-      return
-    
-    # TODO Check for cached copy (use normal web cache-control semantics)
-    # Also, we could apply a blacklist here if we have known bad actors.
-    http = tornado.httpclient.AsyncHTTPClient()
-    http.fetch(url, callback=self.on_response)
-
-  def on_response(self, response):
-    if response.error: 
-      self.write("""{"status":"error", "message":"Unable to contact remote server"}""")
-      self.finish()
-      return
-    
-    # Parse it and make sure it's valid
-    try:
-      logging.error(response.body)
-      manifest = json.loads(response.body)
-      # TODO Validate manifest schema?
-      # TODO Should we reserialize or pass through verbatim?  Verbatim allows hashing
-      # but might allow sneaky content encoding trickery.
-      self.write(json.dumps(manifest))
-    except Exception, e:
-      logging.exception(e)
-      self.write("""{"status":"error", "message":"Application manifest is malformed."}""")
-    self.finish()
-
 settings = {
   "static_path": os.path.join(os.path.dirname(__file__), "static"),
   "debug":True
@@ -176,9 +142,8 @@ settings = {
 
 application = tornado.web.Application([
     (r"/installcrx", InstallCRXHandler),
-    (r"/convertcrx", ConvertCRXHandler),
-    (r"/getmanifest", GetManifestHandler) 
-	], **settings)
+    (r"/convertcrx", ConvertCRXHandler)
+], **settings)
 
 
 def run():
