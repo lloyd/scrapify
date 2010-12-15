@@ -23,7 +23,7 @@ for (var i=0;i<vars.length;i++) {
 
 if (args.url)
 {
-  if (args.url.indexOf("https://chrome.google.com/webstore") == 0)
+  if (unescape(args.url).indexOf("https://chrome.google.com/webstore") == 0)
   {
     // use convertcrx to turn it into an OpenWebApp manifest.
     manifestURL = "https://apphelper.mozillalabs.com/convertcrx?url=" + escape(args.url);
