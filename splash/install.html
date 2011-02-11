@@ -3,13 +3,35 @@
 <title>Mozilla Labs: Open Web Apps installer</title>
 <script src="https://stage.myapps.mozillalabs.com/js/jquery-1.4.2.min.js"></script> 
 <script src="https://stage.myapps.mozillalabs.com/jsapi/include.js"></script>
+<style>
+BODY{
+  margin:0px;
+}
+#banner {
+  width:100%;
+  background-color:black;
+  height:32px;
+}
+#logo {
+  font:bold 10pt Helvetica;
+  color:#999;
+  float:right;
+  padding-top:8px;
+  padding-right:16px;
+}
+#body {
+  font:12pt Helvetica;
+  padding-left:16px;
+}
+
+</style>
 <body>
 
-<div id="banner">Mozilla Labs</div>
+<div id="banner"><div id="logo">Mozilla Labs</div></div>
 <div id="body">
 <p>Installing application - please click "Install" to proceed.</p>
-<p><a href="{{ return_to }}">Return to origin page</a></p>
 </div>
+
 </body>
 <script>
 
@@ -32,10 +54,18 @@ if (args.url)
     manifestURL = "https://apphelper.mozillalabs.com/appify?url=" + escape(args.url);
   }
   $(document).ready(function() {
-    navigator.apps.install({url: manifestURL, callback: function(val) {
-      window.location.href = "https://myapps.mozillalabs.com";
-    }});
+    navigator.apps.install(
+    {
+      url: manifestURL, 
+      onsuccess: function(val) {
+        $("#body").html("Application installed.");
+      },
+      onerror: function(val) {
+        $("#body").html("Sorry, there was an error: <div id='error'>" + val.message + "</div>");
+      }
+    })
   });
+  
 }
 </script>
 </html>
