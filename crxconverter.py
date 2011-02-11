@@ -25,7 +25,6 @@ class CRXConverter(object):
     self.convertIcons(zip, manifest)
     self.convertPermissions(manifest)
     self.removeCruft(manifest)
-    manifest["manifest_version"] = "0.2"
     manifest["default_locale"] = "en-US"
     return manifest
     
@@ -51,7 +50,7 @@ class CRXConverter(object):
             dir = path[:idx+1]
           base_url = parsed_url.scheme + "://" + parsed_url.netloc + dir
           
-          manifest["base_url"] = base_url
+          #manifest["base_url"] = base_url
           manifest["launch_path"] = fname
           del manifest["app"]
         else:
